@@ -3,8 +3,7 @@ package course2.module2
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
 
-object DataFrameWithParquet {
-
+object DataFrameWithCsv {
   var out = Console.out
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf()
@@ -17,16 +16,17 @@ object DataFrameWithParquet {
     val sqlContext = new SQLContext(sc)
 
     try {
+      val df = sqlContext.read
+        //Specifies the input data source format. The readers and writers
+        //of this format is provided by the databricks-csv library. This also shows
+        //how to add support for custom data sources.
+        .format("com.databricks.spark.csv")
+        .option("header", "true") // Use first line of all files as header
+        .option("inferSchema", "true") // Automatically infer data types
+        .load("data/airline-flights/carriers.csv")
 
-      //writing 100 json records to parquet format and reading it back again
-      val carriers = sqlContext.read.json("data/airline-flights/carriers.json")
-      val outPath = s"output/carriers-${System.currentTimeMillis()}.parquet"
-      carriers.limit(100).write.parquet(outPath)
-
-      out.println(s"Reading in the Parquet file from $outPath:")
-      val carriers2 = sqlContext.read.parquet(outPath)
-      carriers2.printSchema
-      carriers2.show
+      df.printSchema()
+      df.show()
 
     } finally {
       sc.stop()
