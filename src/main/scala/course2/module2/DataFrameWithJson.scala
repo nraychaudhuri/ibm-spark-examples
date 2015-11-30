@@ -19,14 +19,22 @@ object DataFrameWithJson {
     val sqlContext = new SQLContext(sc)
 
     try {
+
+      //each line should have a complete json record
       val json: DataFrame =
         sqlContext.read.json("data/airline-flights/carriers.json")
 
+      //spark infers the schema as it reads the json document. Since there is a invalid
+      //json record the schema will have an additional column called _corrupt_record
+      //for invalid json record.
+      // It doesn't stop the processing when it finds an invalid records which is great for
+      //large jobs as you don't want to stop for each invalid data record
       json.printSchema()
       Printer(out, "Flights between airports, sorted by airports", json)
-      println(">>>>>>>>>>>>>>>>>>>>>>")
+
+
+      //Printing out the records that failed to parse
       json.where(json("_corrupt_record").isNotNull).collect().foreach(println)
-      println(">>>>>>>>>>>>>>>>>>>>>>")
     } finally {
       sc.stop()
     }
