@@ -43,3 +43,4 @@ tmp/**
 node_modules/
 .sass-cache
 metastore_db
+output

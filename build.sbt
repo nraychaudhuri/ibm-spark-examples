@@ -14,3 +14,27 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-mllib"        % sparkVersion withSources(),
   "com.databricks"   %% "spark-csv"          % "1.3.0"      withSources()
 )
+
+unmanagedResourceDirectories in Compile += baseDirectory.value / "conf"
+unmanagedResourceDirectories in Test += baseDirectory.value / "conf"
+
+initialCommands += """
+  import org.apache.spark.SparkContext
+  import org.apache.spark.SparkContext._
+  import org.apache.spark.sql.SQLContext
+  val conf = new SparkConf().
+    setMaster("local[*]").
+    setAppName("Console").
+    set("spark.app.id", "Console")   // To silence Metrics warning.
+  val sc = new SparkContext(conf)
+  val sqlContext = new SQLContext(sc)
+  import sqlContext.implicits._
+  """
+
+cleanupCommands += """
+  println("Closing the SparkContext:")
+  sc.stop()
+  """.stripMargin
+
+addCommandAlias("ex1a",  "run-main course2.module1.WordCount")
+addCommandAlias("ex1b",  "run-main course2.module1.WordCountFaster")
