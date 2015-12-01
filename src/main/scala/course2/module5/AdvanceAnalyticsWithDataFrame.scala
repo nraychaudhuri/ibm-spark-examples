@@ -1,4 +1,4 @@
-package course2.module4
+package course2.module5
 
 import org.apache.spark.ml.feature.{HashingTF, IDF, Tokenizer}
 import org.apache.spark.sql.SQLContext
