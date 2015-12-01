@@ -36,5 +36,10 @@ cleanupCommands += """
   sc.stop()
   """.stripMargin
 
-addCommandAlias("ex1a",  "run-main course2.module1.WordCount")
-addCommandAlias("ex1b",  "run-main course2.module1.WordCountFaster")
+addCommandAlias("ex1a",         "run-main course2.module1.WordCount")
+addCommandAlias("ex1b",         "run-main course2.module1.WordCountFaster")
+addCommandAlias("ex3",          "run-main course2.module3.SparkDataFrames")
+addCommandAlias("ex3-csv",      "run-main course2.module3.DataFrameWithCsv")
+addCommandAlias("ex3-json",     "run-main course2.module3.DataFrameWithJson")
+addCommandAlias("ex3-parquet",  "run-main course2.module3.DataFrameWithParquet")
+addCommandAlias("ex4",          "run-main course2.module4.AdvanceAnalyticsWithDataFrame")
