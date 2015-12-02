@@ -38,8 +38,14 @@ cleanupCommands += """
 
 addCommandAlias("ex1a",         "run-main course2.module1.WordCount")
 addCommandAlias("ex1b",         "run-main course2.module1.WordCountFaster")
+addCommandAlias("ex2-crawl",    "run-main course2.module2.Crawl")
+addCommandAlias("ex2-ii",       "run-main course2.module2.InvertedIndex")
 addCommandAlias("ex3",          "run-main course2.module3.SparkDataFrames")
 addCommandAlias("ex3-csv",      "run-main course2.module3.DataFrameWithCsv")
 addCommandAlias("ex3-json",     "run-main course2.module3.DataFrameWithJson")
 addCommandAlias("ex3-parquet",  "run-main course2.module3.DataFrameWithParquet")
 addCommandAlias("ex4",          "run-main course2.module4.AdvanceAnalyticsWithDataFrame")
+
+// Exercise solutions
+addCommandAlias("ex2-ii-sort",        "run-main course2.module2.solns.InvertedIndexSortByWordsAndCounts")
+addCommandAlias("ex2-ii-stop-words",  "run-main course2.module2.solns.InvertedIndexSortByWordsAndCountsWithStopWordsFiltering")
