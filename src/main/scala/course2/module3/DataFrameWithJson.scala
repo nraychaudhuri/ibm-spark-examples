@@ -15,7 +15,7 @@ object DataFrameWithJson {
     // Change to a more reasonable default number of partitions for our data
     // (from 200)
     conf.set("spark.sql.shuffle.partitions", "4")
-    conf.set("spark.app.id", "Console")   // To silence Metrics warning.
+    conf.set("spark.app.id", "DataFrameWithJson")   // To silence Metrics warning.
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
 
