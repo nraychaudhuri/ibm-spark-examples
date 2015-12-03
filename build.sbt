@@ -44,7 +44,7 @@ addCommandAlias("ex3",          "run-main course2.module3.SparkDataFrames")
 addCommandAlias("ex3-csv",      "run-main course2.module3.DataFrameWithCsv")
 addCommandAlias("ex3-json",     "run-main course2.module3.DataFrameWithJson")
 addCommandAlias("ex3-parquet",  "run-main course2.module3.DataFrameWithParquet")
-addCommandAlias("ex4",          "run-main course2.module4.AdvanceAnalyticsWithDataFrame")
+addCommandAlias("ex4-joins",    "run-main course2.module4.Joins")
 
 // Exercise solutions
 addCommandAlias("ex2-ii-sort",        "run-main course2.module2.solns.InvertedIndexSortByWordsAndCounts")
