@@ -25,7 +25,8 @@ initialCommands += """
   val conf = new SparkConf().
     setMaster("local[*]").
     setAppName("Console").
-    set("spark.app.id", "Console")   // To silence Metrics warning.
+    set("spark.app.id", "Console").   // To silence Metrics warning.
+    set("spark.sql.shuffle.partitions", "4")  // for smaller data sets.
   val sc = new SparkContext(conf)
   val sqlContext = new SQLContext(sc)
   import sqlContext.implicits._
@@ -45,6 +46,8 @@ addCommandAlias("ex3-csv",      "run-main course2.module3.DataFrameWithCsv")
 addCommandAlias("ex3-json",     "run-main course2.module3.DataFrameWithJson")
 addCommandAlias("ex3-parquet",  "run-main course2.module3.DataFrameWithParquet")
 addCommandAlias("ex4-joins",    "run-main course2.module4.Joins")
+addCommandAlias("ex4-aggs",     "run-main course2.module4.Aggs")
+addCommandAlias("ex4-cubes",    "run-main course2.module4.Cubes")
 
 // Exercise solutions
 addCommandAlias("ex2-ii-sort",        "run-main course2.module2.solns.InvertedIndexSortByWordsAndCounts")
