@@ -11,6 +11,7 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core"         % sparkVersion withSources(),
   "org.apache.spark" %% "spark-streaming"    % sparkVersion withSources(),
   "org.apache.spark" %% "spark-sql"          % sparkVersion withSources(),
+  "org.apache.spark" %% "spark-hive"         % sparkVersion withSources(),
   "org.apache.spark" %% "spark-mllib"        % sparkVersion withSources(),
   "com.databricks"   %% "spark-csv"          % "1.3.0"      withSources()
 )
@@ -48,6 +49,8 @@ addCommandAlias("ex3-parquet",  "run-main course2.module3.DataFrameWithParquet")
 addCommandAlias("ex4-joins",    "run-main course2.module4.Joins")
 addCommandAlias("ex4-aggs",     "run-main course2.module4.Aggs")
 addCommandAlias("ex4-cubes",    "run-main course2.module4.Cubes")
+addCommandAlias("ex4-hive",     "run-main course2.module4.Hive")
+addCommandAlias("ex4-streams",  "run-main course2.module4.Streams")
 
 // Exercise solutions
 addCommandAlias("ex2-ii-sort",        "run-main course2.module2.solns.InvertedIndexSortByWordsAndCounts")

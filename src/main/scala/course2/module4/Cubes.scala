@@ -100,7 +100,7 @@ object Cubes {
       println("For longest flights:")
       dist_time.show()
       println("For shortest flights:")
-      dist_time.orderBy($"avg_distance".asc).show()
+      dist_time.orderBy($"avg_dist".asc).show()
       dist_time.unpersist
 
       val dist_time_sql = sql("""
