@@ -24,8 +24,6 @@ object WordCountFaster {
 
       println(s"Writing output to: $outpath")
       wc.saveAsTextFile(outpath)
-      printMsg("Enter any key to finish the job...")
-      Console.in.read()
     } finally {
       sc.stop()
     }
