@@ -55,7 +55,9 @@ object UnsupervisedLearningExample {
     model.clusterCenters.zipWithIndex.foreach(println)
 
     //Now predict centers for following test data
-    val testData = Seq("0.3 0.3 0.3", "8.0 8.0 8.0", "8.0 0.1 0.1").map(_.split(" ").map(_.toDouble)).map(Vectors.dense)
+    val testData = Seq("0.3 0.3 0.3", "8.0 8.0 8.0", "8.0 0.1 0.1")
+      .map(_.split(" ").map(_.toDouble))
+      .map(Vectors.dense)
     val test = sc.makeRDD(testData).map(Row(_))
     val testDF = sqlContext.createDataFrame(test, schema)
 
