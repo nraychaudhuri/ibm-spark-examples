@@ -8,13 +8,20 @@ scalaVersion := "2.10.5"
 val sparkVersion = "1.5.2"
 
 libraryDependencies ++= Seq(
-  "org.apache.spark" %% "spark-core"         % sparkVersion withSources(),
-  "org.apache.spark" %% "spark-streaming"    % sparkVersion withSources(),
-  "org.apache.spark" %% "spark-sql"          % sparkVersion withSources(),
-  "org.apache.spark" %% "spark-hive"         % sparkVersion withSources(),
-  "org.apache.spark" %% "spark-mllib"        % sparkVersion withSources(),
-  "com.databricks"   %% "spark-csv"          % "1.3.0"      withSources()
+  "org.apache.spark" %% "spark-core"              % sparkVersion withSources(),
+  "org.apache.spark" %% "spark-streaming"         % sparkVersion withSources(),
+  "org.apache.spark" %% "spark-sql"               % sparkVersion withSources(),
+  "org.apache.spark" %% "spark-hive"              % sparkVersion withSources(),
+  "org.apache.spark" %% "spark-streaming-twitter" % sparkVersion withSources(),
+  "org.apache.spark" %% "spark-mllib"             % sparkVersion withSources(),
+  //"com.typesafe.play" %% "play-json"              % "2.4.4" withSources(),
+  "org.twitter4j"    %  "twitter4j-core"          % "3.0.3" withSources(),
+  "com.databricks"   %% "spark-csv"               % "1.3.0"      withSources()
 )
+
+libraryDependencies += "org.twitter4j" % "twitter4j-core" % "3.0.3"
+
+
 
 unmanagedResourceDirectories in Compile += baseDirectory.value / "conf"
 unmanagedResourceDirectories in Test += baseDirectory.value / "conf"
@@ -57,5 +64,7 @@ addCommandAlias("ex5",          "run-main course2.module5.AdvanceAnalyticsWithDa
 addCommandAlias("ex5-supervised", "run-main course2.module5.SupervisedLearningExample")
 addCommandAlias("ex5-unsupervised", "run-main course2.module5.UnsupervisedLearningExample")
 addCommandAlias("ex5-graphx", "run-main course2.module5.GraphingFlights")
+addCommandAlias("ex5-ssa", "run-main course2.module5.SparkSentimentAnalysis")
+addCommandAlias("ex5-ssat", "run-main course2.module5.SparkSentimentAnalysisTweets")
 
 // Exercise solutions

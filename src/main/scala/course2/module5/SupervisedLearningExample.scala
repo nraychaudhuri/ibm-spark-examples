@@ -6,6 +6,7 @@ import org.apache.spark.mllib.recommendation.{ALS, MatrixFactorizationModel, Rat
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 
+//TODO: Change this to spark.ml version
 //we will take an Collaborative filtering example to rate movies.
 //The data is from (http://grouplens.org/datasets/movielens/). MovieLens is a
 //non-commercial movie recommendation website
