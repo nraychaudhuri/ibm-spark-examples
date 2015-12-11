@@ -2,11 +2,33 @@ package course2.module5
 
 
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.mllib.recommendation.{ALS, MatrixFactorizationModel, Rating}
+import org.apache.spark.ml.recommendation.{ALSModel, ALS}
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.{DataFrame, SQLContext}
 import org.apache.spark.{SparkConf, SparkContext}
 
-//TODO: Change this to spark.ml version
+case class Rating(userId: Int, movieId: Int, rating: Double)
+
+object Rating {
+  //format is: userId, movieId, rating, timestamp
+  def parseRating(str: String): Rating = {
+    val fields = str.split("::")
+    Rating(fields(0).toInt, fields(1).toInt, fields(2).toDouble) //we don't care about the timestamp
+  }
+}
+
+case class Movie(movieId: Int, title: String, genres: Seq[String])
+
+object Movie {
+  //format is: movieId, title, genre1|genre2
+  def parseMovie(str: String): Movie = {
+    val fields = str.split("::")
+    assert(fields.size == 3)
+    Movie(fields(0).toInt, fields(1), fields(2).split("|"))
+  }
+}
+
+
 //we will take an Collaborative filtering example to rate movies.
 //The data is from (http://grouplens.org/datasets/movielens/). MovieLens is a
 //non-commercial movie recommendation website
@@ -29,47 +51,51 @@ object SupervisedLearningExample {
       .set("spark.app.id", "ALS")   // To silence Metrics warning.
 
     val sc = new SparkContext(conf)
+    val sqlContext = new SQLContext(sc)
+    import sqlContext.implicits._
 
     Logger.getRootLogger.setLevel(Level.WARN)
-
-    val ratingsData = sc.textFile(ratingsFile).map { line =>
-      val fields = line.split("::")
-      Rating(fields(0).toInt, fields(1).toInt, fields(2).toDouble)
-    }.cache()
-
-    val testData = sc.textFile(testFile).map { line =>
-      val fields = line.split(",")
-      // format: (movieId, movieName)
-      (fields(0).toInt, fields(1).toInt)
-    }
-
-    val movies = sc.textFile(moviesFile).map { line =>
-      val fields = line.split("::")
-      // format: (userId, movieId)
-      (fields(0).toInt, fields(1))
-    }.collect().toMap
-
+    val ratingsData: RDD[Rating] = sc.textFile(ratingsFile).map(Rating.parseRating).cache()
+    val testData: RDD[Rating] = sc.textFile(testFile).map(Rating.parseRating).cache()
 
     val numRatings = ratingsData.count()
-    val numUsers = ratingsData.map(_.user).distinct().count()
-    val numMovies = ratingsData.map(_.product).distinct().count()
+    val numUsers = ratingsData.map(_.userId).distinct().count()
+    val numMovies = ratingsData.map(_.movieId).distinct().count()
 
     println(s"Got $numRatings ratings from $numUsers users on $numMovies movies.")
 
-    val numTraining = ratingsData.count()
-    val numTest = testData.count()
-    println(s"Training: $numTraining, test: $numTest.")
 
-    //This is much more simplified version, in real world we try different rank, iterations and lambda
-    //values to find best model.
-    val model: MatrixFactorizationModel = ALS.train(ratingsData, rank, numIterations)
+    //This is much more simplified version, in real world we try different rank,
+    // iterations and other parameters to find best model.
+    val als = new ALS()
+                 .setUserCol("userId")
+                 .setItemCol("movieId")
+                 .setRank(rank)
+                 .setMaxIter(numIterations)
 
-    val recommendations: RDD[Rating] = model.predict(testData)
-    recommendations.foreach(r => println(s"Recommendation for User ${r.user} ${movies(r.product)}"))
+    val model: ALSModel = als.fit(ratingsData.toDF)
 
-    //recommend products for User 0
-    println("Recommend movies for User 0 based on ratings")
-    model.recommendProducts(0, 5).foreach(r => println(movies(r.product)))
+    val predictions: DataFrame = model.transform(testData.toDF).cache
+
+    //metadata about the movies
+    val movies = sc.textFile(moviesFile).map(Movie.parseMovie).toDF()
+    val falsePositives = predictions.join(movies)
+      .where((predictions("movieId") === movies("movieId"))
+      && ($"rating" <= 1) && ($"prediction" >= 4))
+      .select($"userId", predictions("movieId"), $"title", $"rating", $"prediction")
+    val numFalsePositives = falsePositives.count()
+    println(s"Found $numFalsePositives false positives")
+    if (numFalsePositives > 0) {
+      println(s"Example false positives:")
+      falsePositives.limit(100).collect().foreach(println)
+    }
+
+    predictions.show()
+    println(">>>> Find out predictions where user 26 likes movies 10, 15, 20 & 25")
+    val df26 = sc
+      .makeRDD(Seq(26 -> 10, 26 -> 15, 26 -> 20, 26 -> 25))
+      .toDF("userId", "movieId")
+    model.transform(df26).show()
 
     sc.stop()
   }
