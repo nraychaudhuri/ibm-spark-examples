@@ -13,7 +13,7 @@ object Joins {
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf()
     conf.setMaster("local[*]")
-    conf.setAppName("Spark DataFrames")
+    conf.setAppName("Spark DataFrame Joins")
     conf.set("spark.sql.shuffle.partitions", "4")
     conf.set("spark.app.id", "Joins")
     val sc = new SparkContext(conf)

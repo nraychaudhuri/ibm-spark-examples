@@ -13,7 +13,7 @@ object Cubes {
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf()
     conf.setMaster("local[*]")
-    conf.setAppName("Spark DataFrames")
+    conf.setAppName("Spark DataFrame Cubes")
     conf.set("spark.sql.shuffle.partitions", "4")
     conf.set("spark.app.id", "Aggs")
     val sc = new SparkContext(conf)

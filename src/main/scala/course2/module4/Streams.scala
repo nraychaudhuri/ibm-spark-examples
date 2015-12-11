@@ -25,7 +25,7 @@ object Streams {
     val port = if (args.size > 0) args(0).toInt else defaultPort
     val conf = new SparkConf()
     conf.setMaster("local[*]")
-    conf.setAppName("Spark DataFrames")
+    conf.setAppName("Spark Streaming")
     conf.set("spark.sql.shuffle.partitions", "4")
     conf.set("spark.app.id", "Aggs")
     val sc = new SparkContext(conf)

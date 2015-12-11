@@ -13,7 +13,7 @@ object Aggs {
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf()
     conf.setMaster("local[*]")
-    conf.setAppName("Spark DataFrames")
+    conf.setAppName("Spark DataFrame Aggregations")
     conf.set("spark.sql.shuffle.partitions", "4")
     conf.set("spark.app.id", "Aggs")
     val sc = new SparkContext(conf)
