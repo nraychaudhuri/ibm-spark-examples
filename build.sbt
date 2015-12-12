@@ -52,6 +52,7 @@ addCommandAlias("ex4-cubes",    "run-main course2.module4.Cubes")
 addCommandAlias("ex4-hive",     "run-main course2.module4.Hive")
 addCommandAlias("ex4-streams",  "run-main course2.module4.Streams")
 addCommandAlias("ex4-hive-etl", "run-main course2.module4.HiveETL")
+addCommandAlias("ex4-hive-etl-check", "run-main course2.module4.HiveETLCheck")
 
 // Exercise solutions
 addCommandAlias("ex2-ii-sort",        "run-main course2.module2.solns.InvertedIndexSortByWordsAndCounts")

@@ -8,7 +8,6 @@ import org.apache.spark.streaming.Seconds
 import org.apache.spark.streaming.scheduler.{
   StreamingListener, StreamingListenerReceiverError, StreamingListenerReceiverStopped}
 import org.apache.spark.sql.hive.HiveContext
-import org.apache.spark.{SparkConf, SparkContext}
 import data.Flight
 import util.Files
 import scala.util.control.NonFatal
@@ -24,6 +23,7 @@ object HiveETL {
   val interval = Seconds(5)
   val pause = 10  // milliseconds
   val server = "127.0.0.1"
+  val hiveETLDir = "output/hive-etl"
   val checkpointDir = "output/checkpoint_dir"
   val runtime = 10 * 1000   // run for N*1000 milliseconds
   val numRecordsToWritePerBlock = 10000
@@ -32,9 +32,9 @@ object HiveETL {
     val port = if (args.size > 0) args(0).toInt else defaultPort
     val conf = new SparkConf()
     conf.setMaster("local[*]")
-    conf.setAppName("Spark Streaming and Hive")
+    conf.setAppName("ETL with Spark Streaming and Hive")
     conf.set("spark.sql.shuffle.partitions", "4")
-    conf.set("spark.app.id", "Aggs")
+    conf.set("spark.app.id", "HiveETL")
     val sc = new SparkContext(conf)
 
     // Clean up the checkpoint directory and the in-memory metastore from
@@ -43,6 +43,7 @@ object HiveETL {
     Files.rmrf("derby.log")
     Files.rmrf("metastore_db")
     Files.rmrf(checkpointDir)
+    Files.rmrf(hiveETLDir)
 
     def createContext(): StreamingContext = {
       val ssc = new StreamingContext(sc, interval)
@@ -129,9 +130,9 @@ object HiveETL {
     // if we use INSERT INTO, with values for new partition columns, etc.
 
     // Before processing the stream, create the table.
-    val hiveETLDir = new java.io.File("output/hive-etl")
+    val hiveETLFile = new java.io.File(hiveETLDir)
     // Hive DDL statements require absolute paths:
-    val hiveETLPath = hiveETLDir.getCanonicalPath
+    val hiveETLPath = hiveETLFile.getCanonicalPath
     banner(s"""
       Create an 'external', partitioned Hive table for a subset of the flight data:
       Location: $hiveETLPath
@@ -150,40 +151,48 @@ object HiveETL {
         depMonth       STRING,
         depDay         STRING)
       ROW FORMAT DELIMITED FIELDS TERMINATED BY '|'
-      location '$hiveETLPath'
+      LOCATION '$hiveETLPath'
       """).show
     println("Tables:")
     sql("SHOW TABLES").show
 
     dstream.foreachRDD { (rdd, timestamp) =>
       try {
+        // Ignore bad lines that fail to parse (for simplicity).
         val flights =
-          rdd.flatMap(line => Flight.parse(line)).cache
-        val uniqueYMDs = flights.map(f =>
-          (f.date.year, f.date.month, f.date.dayOfMonth))
-          .distinct().collect()  // collect returns an Array
-        uniqueYMDs.foreach { case (y,m,d) =>
-          val yStr = "%04d".format(y)
-          val mStr = "%02d".format(m)
-          val dStr = "%02d".format(d)
+          rdd.flatMap(line => Flight.parse(line)).toDF().cache
+        val uniqueYMDs = flights
+          .select("date.year", "date.month", "date.dayOfMonth")
+          .distinct.collect
+
+        uniqueYMDs.foreach { row =>
+          val year     = row.getInt(0)
+          val month    = row.getInt(1)
+          val day      = row.getInt(2)
+          val yearStr  = "%04d".format(year)
+          val monthStr = "%02d".format(month)
+          val dayStr   = "%02d".format(day)
           val partitionPath ="%s/%s-%s-%s".format(
-            hiveETLPath, yStr, mStr, dStr)
+            hiveETLPath, yearStr, monthStr, dayStr)
           println(s"(time: $timestamp) Creating partition: $partitionPath")
           sql(s"""
             ALTER TABLE flights2 ADD IF NOT EXISTS PARTITION (
-              depYear='$yStr', depMonth='$mStr', depDay='$dStr')
+              depYear='$yearStr', depMonth='$monthStr', depDay='$dayStr')
             LOCATION '$partitionPath'
             """)
-          flights.filter(f =>
-              f.date.year == y &&
-              f.date.month == m &&
-              f.date.dayOfMonth == d)
-            .map(f =>
-              // DON'T write the partition columns.
-              Seq(f.times.depTime, f.times.arrTime, f.uniqueCarrier,
-                f.flightNum, f.origin, f.dest).mkString("|"))
+
+          flights
+            .where(
+              $"date.year" === year and
+              $"date.month" === month and
+              $"date.dayOfMonth" === day)
+            // DON'T write the partition columns.
+            .select($"times.depTime", $"times.arrTime", $"uniqueCarrier",
+                $"flightNum", $"origin", $"dest")
+            .map(row => row.mkString("|"))
             .saveAsTextFile(partitionPath)
         }
+
         val showp = sql("SHOW PARTITIONS flights2")
         val showpCount = showp.count
         println(s"(time: $timestamp) Partitions (${showpCount}):")
