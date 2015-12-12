@@ -37,9 +37,9 @@ object HiveETL {
     conf.set("spark.app.id", "HiveETL")
     val sc = new SparkContext(conf)
 
-    // Clean up the checkpoint directory and the in-memory metastore from
-    // the last run, if any.
-    // Don't do any of this in production, under normal circumstances!
+    // Clean up the checkpoint directory, the in-memory metastore,
+    // the derby log and the output of the last run, if any.
+    // DON'T do any of this in production, under normal circumstances!
     Files.rmrf("derby.log")
     Files.rmrf("metastore_db")
     Files.rmrf(checkpointDir)
@@ -90,6 +90,9 @@ object HiveETL {
   import java.net.{Socket, ServerSocket}
   import java.io.{File, PrintWriter}
 
+  // A Runnable to send the Airline flights data to a socket.
+  // It sleeps temporarily after each numRecordsToWritePerBlock
+  // block.
   def makeRunnable(port: Int) = new Runnable {
     def run() = {
       val listener = new ServerSocket(port);
@@ -119,6 +122,9 @@ object HiveETL {
     dataThread
   }
 
+  // Does the real work: creates the Hive table, ingests the socket data,
+  // parses into flights, splits the flights into year-month-day and writes
+  // to new Hive table partitions.
   def processDStream(ssc: StreamingContext, dstream: DStream[String]): StreamingContext = {
     val hiveContext = new HiveContext(ssc.sparkContext)
     import hiveContext.implicits._
@@ -161,10 +167,19 @@ object HiveETL {
         // Ignore bad lines that fail to parse (for simplicity).
         val flights =
           rdd.flatMap(line => Flight.parse(line)).toDF().cache
+
+        // Find the unique year-month-day combinations in the data.
+        // It appears to be safer to "collect" to a collection in
+        // the driver and then go through it serially to create
+        // corresponding table partitions.
         val uniqueYMDs = flights
           .select("date.year", "date.month", "date.dayOfMonth")
           .distinct.collect
 
+        // For each year-month-day, create the partition, filter
+        // the data for that date, form the new records, and write
+        // it to the partition directory. We write '|'-separated
+        // strings. Consider replacing with Parquet in production.
         uniqueYMDs.foreach { row =>
           val year     = row.getInt(0)
           val month    = row.getInt(1)
