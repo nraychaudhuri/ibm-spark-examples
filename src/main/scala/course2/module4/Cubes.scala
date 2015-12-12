@@ -15,7 +15,7 @@ object Cubes {
     conf.setMaster("local[*]")
     conf.setAppName("Spark DataFrame Cubes")
     conf.set("spark.sql.shuffle.partitions", "4")
-    conf.set("spark.app.id", "Aggs")
+    conf.set("spark.app.id", "Cubes")
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
     import sqlContext.implicits._

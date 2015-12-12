@@ -27,7 +27,7 @@ object Streams {
     conf.setMaster("local[*]")
     conf.setAppName("Spark Streaming")
     conf.set("spark.sql.shuffle.partitions", "4")
-    conf.set("spark.app.id", "Aggs")
+    conf.set("spark.app.id", "Streams")
     val sc = new SparkContext(conf)
 
     def createContext(): StreamingContext = {

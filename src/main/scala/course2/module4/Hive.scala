@@ -14,7 +14,7 @@ object Hive {
     conf.setMaster("local[*]")
     conf.setAppName("HiveContext")
     conf.set("spark.sql.shuffle.partitions", "4")
-    conf.set("spark.app.id", "Aggs")
+    conf.set("spark.app.id", "Hive")
     val sc = new SparkContext(conf)
     val hiveContext = new HiveContext(sc)
     import hiveContext.implicits._
