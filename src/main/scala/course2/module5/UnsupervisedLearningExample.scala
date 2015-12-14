@@ -14,6 +14,7 @@ import org.apache.spark.sql.types.{StructField, StructType}
 // Data points that are like one another, but unlike others,
 // are likely to represent a meaningful grouping, and so clustering
 // algorithms try to put such data into the same cluster.
+//This example is also taken from Spark distribution and simplified.
 object UnsupervisedLearningExample {
 
   val FEATURES_COL = "features"
@@ -55,6 +56,7 @@ object UnsupervisedLearningExample {
     model.clusterCenters.zipWithIndex.foreach(println)
 
     //Now predict centers for following test data
+    //centers tells which groups these test data belongs
     val testData = Seq("0.3 0.3 0.3", "8.0 8.0 8.0", "8.0 0.1 0.1")
       .map(_.split(" ").map(_.toDouble))
       .map(Vectors.dense)
