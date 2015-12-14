@@ -55,8 +55,14 @@ object SupervisedLearningExample {
     import sqlContext.implicits._
 
     Logger.getRootLogger.setLevel(Level.WARN)
+
+
+    //this will be our training dataset
     val ratingsData: RDD[Rating] = sc.textFile(ratingsFile).map(Rating.parseRating).cache()
+
+    //this will be out test dataset to verify the model
     val testData: RDD[Rating] = sc.textFile(testFile).map(Rating.parseRating).cache()
+
 
     val numRatings = ratingsData.count()
     val numUsers = ratingsData.map(_.userId).distinct().count()
@@ -67,19 +73,24 @@ object SupervisedLearningExample {
 
     //This is much more simplified version, in real world we try different rank,
     // iterations and other parameters to find best model.
+    //typically ALS model looks for two properties, usercol for user info and itemcol for items that we are recommending
     val als = new ALS()
                  .setUserCol("userId")
                  .setItemCol("movieId")
                  .setRank(rank)
                  .setMaxIter(numIterations)
 
-    val model: ALSModel = als.fit(ratingsData.toDF)
+    //training the model
+    val model: ALSModel = als.fit(ratingsData.toDF) //converting rdd to dataframe for spark.ml
 
+    //now trying the model on our testdata
     val predictions: DataFrame = model.transform(testData.toDF).cache
 
     //metadata about the movies
     val movies = sc.textFile(moviesFile).map(Movie.parseMovie).toDF()
-    val falsePositives = predictions.join(movies)
+
+    //trying to find out if our model has any falsePositives
+    val falsePositives = predictions.join(movies) //joining with movies so that we can print the movie names
       .where((predictions("movieId") === movies("movieId"))
       && ($"rating" <= 1) && ($"prediction" >= 4))
       .select($"userId", predictions("movieId"), $"title", $"rating", $"prediction")
@@ -90,7 +101,11 @@ object SupervisedLearningExample {
       falsePositives.limit(100).collect().foreach(println)
     }
 
+    //show first 20 predictions
     predictions.show()
+
+
+    //running predictions for user 26 as an example to find out whether user likes some movies
     println(">>>> Find out predictions where user 26 likes movies 10, 15, 20 & 25")
     val df26 = sc
       .makeRDD(Seq(26 -> 10, 26 -> 15, 26 -> 20, 26 -> 25))

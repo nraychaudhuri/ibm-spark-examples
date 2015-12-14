@@ -29,8 +29,12 @@ object SparkSentimentAnalysis {
     try {
       val bayesModel: NaiveBayesModel = createModel(sc)
 
+      //we will use hashing to translate words to numeric features
       val htf = new HashingTF()
-      //testing the model with some sample tweets
+      //testing the model with some sample tweets.
+      //This model is not perfect(mostly like real world) so some predictions
+      //might not be correct
+      //0 - negative, 2 = neutral, 4 = positive
       println(">>>>>>>1 " + bayesModel.predict(htf.transform("it rains a lot in london".split(" "))))
       println(">>>>>>>2 " + bayesModel.predict(htf.transform("This product sucks".split(" "))))
       println(">>>>>>>3 " + bayesModel.predict(htf.transform("I am feeling very sad".split(" "))))
@@ -75,6 +79,7 @@ object SparkSentimentAnalysis {
 
     labledRdd.cache()
 
+    //we are using Multinomial Naive Bayes variation by default
     val bayesModel: NaiveBayesModel = NaiveBayes.train(labledRdd)
     bayesModel
   }

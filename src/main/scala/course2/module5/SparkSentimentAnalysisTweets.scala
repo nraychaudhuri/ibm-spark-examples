@@ -40,7 +40,7 @@ object SparkSentimentAnalysisTweets {
 
       val stream: DStream[Status] = TwitterUtils.createStream(ssc,
         Twitter.auth(consumerKey, consumerSecret, accessToken, accessTokenSecret),
-        Seq("programming", "code", "crash") //filter criteria
+        Seq("programming", "computer", "crash") //filter criteria
       )
       stream
         .filter(s => s.getUser.getLang == "en")
